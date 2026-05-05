@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login — Sudais Ahmad</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,800&family=Fira+Code:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080810;--surface:#0e0e1a;--card:#13131f;
+  --accent:#1d4ed8;--accent2:#0891b2;--gold:#f59e0b;
+  --text:#f1f5f9;--muted:#64748b;--border:rgba(255,255,255,0.07);
+  --danger:#ef4444;--success:#22c55e;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:"Plus Jakarta Sans",sans-serif;display:flex;align-items:center;justify-content:center;cursor:none}
+
+/* CURSOR */
+.cur{position:fixed;width:11px;height:11px;background:#ffe000;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 16px rgba(255,224,0,.9);transition:width .12s,height .12s}
+.cur-ring{position:fixed;width:38px;height:38px;border:1.5px solid rgba(255,224,0,.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .1s}
+.cur.big{width:20px;height:20px}
+.cur-ring.big{width:54px;height:54px;border-color:rgba(255,224,0,.3)}
+
+/* CANVAS BG */
+canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+
+/* GRID OVERLAY */
+.grid-overlay{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(29,78,216,.035) 1px, transparent 1px),
+    linear-gradient(90deg,rgba(29,78,216,.035) 1px,transparent 1px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 40%,transparent 100%);
+}
+
+/* GLOW BLOBS */
+.blob{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:1;animation:blobFloat var(--d,12s) ease-in-out infinite alternate}
+.blob1{width:500px;height:500px;background:rgba(29,78,216,.12);top:-120px;left:-120px;--d:10s}
+.blob2{width:400px;height:400px;background:rgba(8,145,178,.1);bottom:-100px;right:-80px;--d:14s}
+.blob3{width:280px;height:280px;background:rgba(245,158,11,.07);top:40%;left:60%;--d:8s}
+@keyframes blobFloat{from{transform:translate(0,0) scale(1)}to{transform:translate(30px,20px) scale(1.06)}}
+
+/* MAIN CARD */
+.login-wrap{
+  position:relative;z-index:10;
+  width:420px;
+  opacity:0;
+  animation:cardIn .9s .3s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(40px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.login-card{
+  background:rgba(13,13,25,.92);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:44px 40px 40px;
+  backdrop-filter:blur(28px);
+  box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 0 1px rgba(29,78,216,.08);
+  position:relative;overflow:hidden;
+}
+.login-card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent),var(--gold),var(--accent2));
+  border-radius:20px 20px 0 0;
+}
+
+/* LOGO */
+.logo-row{display:flex;align-items:center;gap:13px;margin-bottom:32px}
+.logo-icon{
+  width:46px;height:46px;border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;box-shadow:0 6px 20px rgba(29,78,216,.4);
+  flex-shrink:0;
+  animation:iconPulse 3s ease-in-out infinite;
+}
+@keyframes iconPulse{0%,100%{box-shadow:0 6px 20px rgba(29,78,216,.4)}50%{box-shadow:0 6px 32px rgba(29,78,216,.7)}}
+.logo-text{font-family:"Playfair Display",serif;font-weight:900;font-size:1.3rem;line-height:1.1}
+.logo-text span{display:block;font-family:"Fira Code",monospace;font-size:.62rem;color:var(--muted);font-weight:400;letter-spacing:2px;margin-top:2px}
+
+/* HEADING */
+.card-heading{font-family:"Playfair Display",serif;font-size:1.7rem;font-weight:900;line-height:1.1;margin-bottom:6px}
+.card-heading em{font-style:italic;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.card-sub{font-size:.8rem;color:var(--muted);margin-bottom:30px;font-family:"Fira Code",monospace;letter-spacing:.5px}
+
+/* FORM */
+.field{position:relative;margin-bottom:18px}
+.field label{display:block;font-family:"Fira Code",monospace;font-size:.65rem;color:var(--accent2);letter-spacing:2px;text-transform:uppercase;margin-bottom:7px}
+.field input{
+  width:100%;background:rgba(255,255,255,.04);
+  border:1px solid var(--border);border-radius:10px;
+  padding:13px 16px;color:var(--text);font-family:"Plus Jakarta Sans",sans-serif;font-size:.92rem;
+  transition:all .25s;outline:none;
+}
+.field input:focus{border-color:rgba(29,78,216,.6);background:rgba(29,78,216,.06);box-shadow:0 0 0 3px rgba(29,78,216,.1)}
+.field input::placeholder{color:var(--muted)}
+
+/* SUBMIT BTN */
+.btn-login{
+  width:100%;padding:14px;margin-top:8px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;border:none;border-radius:10px;
+  font-family:"Plus Jakarta Sans",sans-serif;font-weight:700;font-size:.92rem;
+  cursor:pointer;transition:all .3s;position:relative;overflow:hidden;
+  box-shadow:0 6px 22px rgba(29,78,216,.35);
+}
+.btn-login::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,.12));
+  opacity:0;transition:opacity .3s;
+}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(29,78,216,.5)}
+.btn-login:hover::after{opacity:1}
+.btn-login:active{transform:translateY(0)}
+.btn-login.loading{pointer-events:none;opacity:.7}
+
+/* SPINNER inside button */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:8px;display:none}
+.btn-login.loading .spinner{display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ERROR */
+.err-box{
+  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);
+  border-radius:8px;padding:11px 14px;
+  font-family:"Fira Code",monospace;font-size:.72rem;color:#fca5a5;
+  margin-bottom:14px;display:none;animation:shake .4s;
+}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* FOOTER NOTE */
+.card-footer{
+  margin-top:24px;padding-top:20px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+  font-family:"Fira Code",monospace;font-size:.62rem;color:var(--muted);
+}
+.status-dot{width:7px;height:7px;background:var(--success);border-radius:50%;animation:blink 2s infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* FLOATING BADGE (top-right) */
+.corner-badge{
+  position:absolute;top:20px;right:20px;
+  font-family:"Fira Code",monospace;font-size:.58rem;color:rgba(99,140,255,.6);
+  letter-spacing:1.5px;border:1px solid rgba(99,140,255,.15);
+  padding:4px 9px;border-radius:4px;
+}
+</style>
+</head>
+<body>
+
+<div class="cur" id="cur"></div>
+<div class="cur-ring" id="curRing"></div>
+
+<canvas id="c"></canvas>
+<div class="grid-overlay"></div>
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="corner-badge">SECURE ZONE</div>
+
+    <div class="logo-row">
+      <div class="logo-icon">🛡️</div>
+      <div class="logo-text">
+        Sudais Ahmad
+        <span>ADMIN PORTAL</span>
+      </div>
+    </div>
+
+    <h1 class="card-heading">Welcome <em>Back</em></h1>
+    <p class="card-sub">// authenticate to access the control panel</p>
+
+    <div class="err-box" id="errBox"></div>
+
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="uname" placeholder="Enter username" autocomplete="username" autofocus>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="pwd" placeholder="Enter password" autocomplete="current-password">
+    </div>
+
+    <button class="btn-login" id="loginBtn" onclick="doLogin()">
+      <span class="spinner" id="sp"></span>
+      <span id="btnTxt">Access Dashboard →</span>
+    </button>
+
+    <div class="card-footer">
+      <div class="status-dot"></div>
+      Secure session · SSL encrypted · Admin only
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CURSOR ──
+const cur=document.getElementById("cur"),ring=document.getElementById("curRing");
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener("mousemove",e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+"px";cur.style.top=my+"px"});
+(function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+"px";ring.style.top=ry+"px";requestAnimationFrame(loop)})();
+document.querySelectorAll("input,button").forEach(el=>{
+  el.addEventListener("mouseenter",()=>{cur.classList.add("big");ring.classList.add("big")});
+  el.addEventListener("mouseleave",()=>{cur.classList.remove("big");ring.classList.remove("big")});
+});
+
+// ── PARTICLE CANVAS ──
+const canvas=document.getElementById("c"),ctx=canvas.getContext("2d");
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight}
+resize();window.addEventListener("resize",resize);
+const N=55,dots=Array.from({length:N},()=>({
+  x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+  vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,r:Math.random()*1.4+.3
+}));
+function drawParticles(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  dots.forEach((d,i)=>{
+    d.x+=d.vx;d.y+=d.vy;
+    if(d.x<0||d.x>canvas.width)d.vx*=-1;
+    if(d.y<0||d.y>canvas.height)d.vy*=-1;
+    ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+    ctx.fillStyle="rgba(99,140,255,.35)";ctx.fill();
+    for(let j=i+1;j<N;j++){
+      const b=dots[j],dist=Math.hypot(d.x-b.x,d.y-b.y);
+      if(dist<130){
+        ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(b.x,b.y);
+        ctx.strokeStyle=`rgba(99,140,255,${.1*(1-dist/130)})`;ctx.lineWidth=.6;ctx.stroke();
+      }
+    }
+  });
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// ── LOGIN ──
+async function doLogin(){
+  const uname=document.getElementById("uname").value.trim();
+  const pwd=document.getElementById("pwd").value.trim();
+  const btn=document.getElementById("loginBtn");
+  const err=document.getElementById("errBox");
+  const sp=document.getElementById("sp");
+  const txt=document.getElementById("btnTxt");
+
+  err.style.display="none";
+  btn.classList.add("loading");
+  sp.style.display="inline-block";
+  txt.textContent="Authenticating…";
+
+  try{
+    const res=await fetch("/admin/login",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({username:uname,password:pwd})
+    });
+    const data=await res.json();
+    if(data.success){
+      txt.textContent="✓ Access Granted";
+      setTimeout(()=>window.location.href="/admin/dashboard",500);
+    }else{
+      err.textContent="⚠ "+data.error;
+      err.style.display="block";
+      btn.classList.remove("loading");
+      sp.style.display="none";
+      txt.textContent="Access Dashboard →";
+    }
+  }catch(e){
+    err.textContent="⚠ Connection error. Try again.";
+    err.style.display="block";
+    btn.classList.remove("loading");
+    sp.style.display="none";
+    txt.textContent="Access Dashboard →";
+  }
+}
+
+// Enter key support
+document.addEventListener("keydown",e=>{if(e.key==="Enter")doLogin()});
+</script>
+</body>
+</html>

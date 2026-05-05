@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — Sudais Ahmad</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,800&family=Fira+Code:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07070f;--surface:#0d0d1a;--card:#111120;--card2:#13132a;
+  --accent:#1d4ed8;--accent2:#0891b2;--gold:#f59e0b;
+  --text:#f1f5f9;--muted:#64748b;--border:rgba(255,255,255,0.07);
+  --danger:#ef4444;--success:#22c55e;--warn:#f59e0b;
+  --sidebar:240px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:"Plus Jakarta Sans",sans-serif;display:flex;cursor:none}
+
+/* CURSOR */
+.cur{position:fixed;width:10px;height:10px;background:#ffe000;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 14px rgba(255,224,0,.8)}
+.cur-ring{position:fixed;width:34px;height:34px;border:1.5px solid rgba(255,224,0,.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .08s}
+
+/* SIDEBAR */
+.sidebar{
+  width:var(--sidebar);height:100vh;background:var(--surface);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  flex-shrink:0;position:relative;z-index:10;
+}
+.sidebar-logo{padding:28px 24px 20px;border-bottom:1px solid var(--border)}
+.sidebar-logo .name{font-family:"Playfair Display",serif;font-weight:900;font-size:1.1rem;color:var(--text)}
+.sidebar-logo .role{font-family:"Fira Code",monospace;font-size:.58rem;color:var(--muted);letter-spacing:2px;margin-top:3px}
+.logo-dot{display:inline-block;width:7px;height:7px;background:var(--success);border-radius:50%;margin-right:6px;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+.sidebar-nav{padding:20px 12px;flex:1}
+.nav-section{font-family:"Fira Code",monospace;font-size:.56rem;color:var(--muted);letter-spacing:2.5px;text-transform:uppercase;padding:0 12px;margin-bottom:8px;margin-top:16px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;color:var(--muted);font-size:.85rem;font-weight:500;cursor:pointer;transition:all .2s;text-decoration:none;margin-bottom:2px}
+.nav-item:hover{background:rgba(29,78,216,.1);color:var(--text)}
+.nav-item.active{background:linear-gradient(135deg,rgba(29,78,216,.2),rgba(8,145,178,.1));color:var(--text);border:1px solid rgba(29,78,216,.2)}
+.nav-item .icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.badge{margin-left:auto;background:var(--danger);color:#fff;font-family:"Fira Code",monospace;font-size:.58rem;padding:2px 7px;border-radius:20px;font-weight:600}
+
+.sidebar-footer{padding:16px 24px;border-top:1px solid var(--border)}
+.logout-btn{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:.83rem;font-weight:500;cursor:pointer;transition:color .2s;text-decoration:none;background:none;border:none;font-family:"Plus Jakarta Sans",sans-serif}
+.logout-btn:hover{color:var(--danger)}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* TOPBAR */
+.topbar{
+  padding:18px 32px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(7,7,15,.8);backdrop-filter:blur(10px);flex-shrink:0;
+}
+.topbar-title{font-family:"Playfair Display",serif;font-weight:900;font-size:1.4rem}
+.topbar-title em{font-style:italic;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.time-chip{font-family:"Fira Code",monospace;font-size:.68rem;color:var(--muted);background:rgba(255,255,255,.04);border:1px solid var(--border);padding:6px 12px;border-radius:6px}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:28px 32px}
+.content::-webkit-scrollbar{width:5px}
+.content::-webkit-scrollbar-track{background:transparent}
+.content::-webkit-scrollbar-thumb{background:rgba(99,140,255,.2);border-radius:3px}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:22px 24px;position:relative;overflow:hidden;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+}
+.stat-card:hover{transform:translateY(-4px);border-color:rgba(29,78,216,.3)}
+.stat-card::before{content:"";position:absolute;inset:0;background:var(--grad,none);opacity:.04;pointer-events:none}
+.stat-card.blue{--grad:linear-gradient(135deg,#1d4ed8,#0891b2)}
+.stat-card.gold{--grad:linear-gradient(135deg,#f59e0b,#dc2626)}
+.stat-card.green{--grad:linear-gradient(135deg,#22c55e,#0891b2)}
+.stat-num{font-family:"Playfair Display",serif;font-weight:900;font-size:2.2rem;line-height:1}
+.stat-card.blue .stat-num{color:#60a5fa}
+.stat-card.gold .stat-num{color:var(--gold)}
+.stat-card.green .stat-num{color:#4ade80}
+.stat-label{font-family:"Fira Code",monospace;font-size:.62rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:5px}
+.stat-icon{position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:2rem;opacity:.15}
+
+/* MESSAGES TABLE */
+.section-label{
+  font-family:"Fira Code",monospace;font-size:.65rem;color:#60a5fa;
+  letter-spacing:3px;text-transform:uppercase;display:flex;align-items:center;gap:10px;
+  margin-bottom:16px;
+}
+.section-label::before{content:"";width:22px;height:2px;background:var(--gold);border-radius:2px}
+
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.table-header{
+  display:grid;grid-template-columns:36px 1fr 1.2fr 2.2fr 120px 100px;
+  gap:12px;padding:13px 20px;background:rgba(255,255,255,.03);
+  border-bottom:1px solid var(--border);
+  font-family:"Fira Code",monospace;font-size:.6rem;color:var(--muted);
+  letter-spacing:1.5px;text-transform:uppercase;align-items:center;
+}
+.msg-row{
+  display:grid;grid-template-columns:36px 1fr 1.2fr 2.2fr 120px 100px;
+  gap:12px;padding:15px 20px;border-bottom:1px solid var(--border);
+  align-items:center;transition:background .2s;
+  animation:rowIn .4s ease forwards;opacity:0;
+}
+@keyframes rowIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+.msg-row:last-child{border-bottom:none}
+.msg-row:hover{background:rgba(255,255,255,.025)}
+.msg-row.unread{background:rgba(29,78,216,.04)}
+
+.id-cell{font-family:"Fira Code",monospace;font-size:.68rem;color:var(--muted)}
+.name-cell{font-weight:600;font-size:.88rem}
+.email-cell{font-family:"Fira Code",monospace;font-size:.72rem;color:var(--accent2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msg-cell{font-size:.82rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.time-cell{font-family:"Fira Code",monospace;font-size:.62rem;color:var(--muted)}
+.actions-cell{display:flex;gap:6px;align-items:center}
+
+.unread-dot{width:7px;height:7px;background:var(--accent);border-radius:50%;flex-shrink:0;display:inline-block;box-shadow:0 0 6px rgba(29,78,216,.8);animation:blink 2s infinite}
+.read-dot{width:7px;height:7px;background:transparent;border-radius:50%;border:1px solid var(--muted);flex-shrink:0;display:inline-block}
+
+.btn-read{
+  background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.25);
+  padding:5px 10px;border-radius:6px;font-family:"Fira Code",monospace;font-size:.6rem;
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.btn-read:hover{background:rgba(34,197,94,.22);transform:scale(1.05)}
+.btn-read.done{opacity:.4;pointer-events:none}
+.btn-del{
+  background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25);
+  padding:5px 10px;border-radius:6px;font-family:"Fira Code",monospace;font-size:.6rem;
+  cursor:pointer;transition:all .2s;
+}
+.btn-del:hover{background:rgba(239,68,68,.22);transform:scale(1.05)}
+
+/* EXPANDED MESSAGE MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--card2);border:1px solid rgba(29,78,216,.2);border-radius:18px;
+  padding:36px;max-width:520px;width:90%;
+  transform:scale(.95);transition:transform .25s;
+  box-shadow:0 40px 100px rgba(0,0,0,.8);
+}
+.modal-bg.open .modal{transform:scale(1)}
+.modal-name{font-family:"Playfair Display",serif;font-size:1.4rem;font-weight:900;margin-bottom:4px}
+.modal-email{font-family:"Fira Code",monospace;font-size:.72rem;color:var(--accent2);margin-bottom:20px}
+.modal-time{font-family:"Fira Code",monospace;font-size:.62rem;color:var(--muted);margin-bottom:16px}
+.modal-msg{font-size:.92rem;color:var(--muted);line-height:1.8;background:rgba(255,255,255,.03);border:1px solid var(--border);padding:18px;border-radius:10px;white-space:pre-wrap}
+.modal-close{margin-top:20px;background:rgba(29,78,216,.15);border:1px solid rgba(29,78,216,.3);color:var(--accent);padding:10px 22px;border-radius:8px;font-family:"Fira Code",monospace;font-size:.72rem;cursor:pointer;transition:all .2s}
+.modal-close:hover{background:rgba(29,78,216,.25)}
+
+/* EMPTY STATE */
+.empty-state{padding:60px;text-align:center}
+.empty-state .icon{font-size:3rem;margin-bottom:16px;opacity:.3}
+.empty-state p{font-family:"Fira Code",monospace;font-size:.75rem;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="cur" id="cur"></div>
+<div class="cur-ring" id="curRing"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="name"><span class="logo-dot"></span>Sudais Ahmad</div>
+    <div class="role">ADMIN PORTAL</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <a class="nav-item active" href="#">
+      <span class="icon">📬</span> Messages
+      {% if unread > 0 %}<span class="badge">{{unread}}</span>{% endif %}
+    </a>
+    <a class="nav-item" href="/" target="_blank">
+      <span class="icon">🌐</span> View Portfolio
+    </a>
+    <div class="nav-section">Account</div>
+    <a class="nav-item" href="/admin/logout">
+      <span class="icon">🔐</span> Lock Session
+    </a>
+  </div>
+  <div class="sidebar-footer">
+    <a class="logout-btn" href="/admin/logout">⏻ Sign Out</a>
+  </div>
+</div>
+
+<!-- MAIN PANEL -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">Contact <em>Inbox</em></div>
+    <div class="topbar-right">
+      <div class="time-chip" id="clock">--:--:--</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card blue">
+        <div class="stat-num" id="totalStat">{{total}}</div>
+        <div class="stat-label">Total Messages</div>
+        <div class="stat-icon">📨</div>
+      </div>
+      <div class="stat-card gold">
+        <div class="stat-num" id="unreadStat">{{unread}}</div>
+        <div class="stat-label">Unread</div>
+        <div class="stat-icon">🔔</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-num" id="readStat">{{total - unread}}</div>
+        <div class="stat-label">Read</div>
+        <div class="stat-icon">✅</div>
+      </div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div class="section-label">Contact Messages</div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <div></div>
+        <div>Name</div>
+        <div>Email</div>
+        <div>Message</div>
+        <div>Time</div>
+        <div>Actions</div>
+      </div>
+
+      <div id="msgList">
+        {% if messages %}
+          {% for m in messages|reverse %}
+          <div class="msg-row {% if not m.read %}unread{% endif %}" id="row-{{m.id}}" style="animation-delay:{{loop.index0 * 0.05}}s">
+            <div class="id-cell">
+              {% if not m.read %}
+                <span class="unread-dot"></span>
+              {% else %}
+                <span class="read-dot"></span>
+              {% endif %}
+            </div>
+            <div class="name-cell" style="cursor:pointer" onclick="openModal({{m.id}}, '{{m.name|e}}', '{{m.email|e}}', '{{m.message|replace("'","\\'")|replace("\n","\\n")|e}}', '{{m.time}}')">{{m.name}}</div>
+            <div class="email-cell">{{m.email}}</div>
+            <div class="msg-cell" style="cursor:pointer" onclick="openModal({{m.id}}, '{{m.name|e}}', '{{m.email|e}}', '{{m.message|replace("'","\\'")|replace("\n","\\n")|e}}', '{{m.time}}')">{{m.message}}</div>
+            <div class="time-cell">{{m.time}}</div>
+            <div class="actions-cell">
+              <button class="btn-read {% if m.read %}done{% endif %}" id="read-{{m.id}}" onclick="markRead({{m.id}})">✓ Read</button>
+              <button class="btn-del" onclick="deleteMsg({{m.id}})">✕</button>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">
+            <div class="icon">📭</div>
+            <p>No messages yet. Share your portfolio!</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-name" id="mName"></div>
+    <div class="modal-email" id="mEmail"></div>
+    <div class="modal-time" id="mTime"></div>
+    <div class="modal-msg" id="mMsg"></div>
+    <button class="modal-close" onclick="closeModal()">← Close</button>
+  </div>
+</div>
+
+<script>
+// CURSOR
+const cur=document.getElementById("cur"),ring=document.getElementById("curRing");
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener("mousemove",e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+"px";cur.style.top=my+"px"});
+(function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+"px";ring.style.top=ry+"px";requestAnimationFrame(loop)})();
+
+// CLOCK
+function tick(){
+  const now=new Date();
+  document.getElementById("clock").textContent=now.toLocaleTimeString();
+}
+tick();setInterval(tick,1000);
+
+// MARK READ
+async function markRead(id){
+  const btn=document.getElementById("read-"+id);
+  const row=document.getElementById("row-"+id);
+  await fetch("/admin/mark-read/"+id,{method:"POST"});
+  btn.classList.add("done");
+  row.classList.remove("unread");
+  // update dot
+  const dot=row.querySelector(".unread-dot");
+  if(dot){dot.className="read-dot"}
+  refreshStats();
+}
+
+// DELETE
+async function deleteMsg(id){
+  if(!confirm("Delete this message?"))return;
+  await fetch("/admin/delete/"+id,{method:"DELETE"});
+  const row=document.getElementById("row-"+id);
+  row.style.opacity="0";row.style.transform="translateX(-20px)";row.style.transition="all .3s";
+  setTimeout(()=>row.remove(),300);
+  refreshStats();
+}
+
+// REFRESH STATS
+function refreshStats(){
+  const rows=document.querySelectorAll(".msg-row");
+  const unread=document.querySelectorAll(".msg-row.unread").length;
+  const total=rows.length;
+  document.getElementById("totalStat").textContent=total;
+  document.getElementById("unreadStat").textContent=unread;
+  document.getElementById("readStat").textContent=total-unread;
+}
+
+// MODAL
+function openModal(id, name, email, message, time){
+  document.getElementById("mName").textContent=name;
+  document.getElementById("mEmail").textContent=email;
+  document.getElementById("mTime").textContent="Received: "+time;
+  document.getElementById("mMsg").textContent=message.replace(/\\n/g,"\n");
+  document.getElementById("modalBg").classList.add("open");
+  // auto mark read
+  const row=document.getElementById("row-"+id);
+  if(row&&row.classList.contains("unread")){markRead(id)}
+}
+function closeModal(e){
+  if(!e||e.target===document.getElementById("modalBg")){
+    document.getElementById("modalBg").classList.remove("open");
+  }
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+</script>
+</body>
+</html>

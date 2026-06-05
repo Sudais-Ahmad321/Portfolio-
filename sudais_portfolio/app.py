@@ -9,8 +9,8 @@ import json, os
 app = Flask(__name__)
 app.secret_key = "sudais-super-secret-key-change-in-production"
 
-ADMIN_USERNAME = "sudais"
-ADMIN_PASSWORD = "admin123"
+ADMIN_USERNAME = "Sudais"
+ADMIN_PASSWORD = "Sudais@345"
 MESSAGES_FILE  = "messages.json"
 
 def load_messages():
